@@ -1,0 +1,577 @@
+{
+  "name": "FateSign BaZi calculation benchmark",
+  "description": "Twelve BaZi test cases with full inputs and expected Four Pillars: True Solar Time, daylight saving, the late Zi hour, Li Chun, the Southern Hemisphere and lunar leap months. Free to cite.",
+  "version": "1.0.0",
+  "verified": "2026-10-24",
+  "engine": "bazi-engine@1.0.0",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "source": "https://fatesign.com/en/methodology/benchmark/",
+  "conventions": [
+    "Clock time is converted with the birthplace's historical time-zone and daylight-saving rules (IANA tz data).",
+    "Places in Xinjiang read the clock time as Beijing time, China's only legal time; true solar time still uses the local longitude.",
+    "True Solar Time = standard time + 4 minutes per degree of longitude from the zone meridian + the equation of time.",
+    "The year changes at the instant of Li Chun and each month at its Jie solar term, compared to the second. Checked against NASA JPL Horizons, Li Chun 2024 differs by about 2 seconds.",
+    "23:00–24:00 is the late Zi hour: the day pillar stays on the calendar day.",
+    "Southern Hemisphere births keep the standard solar-term order."
+  ],
+  "cases": [
+    {
+      "id": "baseline",
+      "title": "Baseline",
+      "checks": "No boundary is crossed, so every correct calculator should agree.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "2000-03-15",
+          "time": "12:00",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Shanghai, China",
+            "lat": 31.2312707,
+            "lon": 121.4700152,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": -3.2,
+        "chart_local": "2000-03-15T11:56",
+        "pillars": {
+          "year": "庚辰",
+          "month": "己卯",
+          "day": "壬申",
+          "hour": "丙午"
+        }
+      },
+      "different_rules": []
+    },
+    {
+      "id": "urumqi-true-solar-time",
+      "title": "True Solar Time changes the hour",
+      "checks": "Ürümqi lies about 32° west of the Beijing time meridian, so local solar time runs about two hours behind the clock.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "1995-06-10",
+          "time": "13:30",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Ürümqi, Xinjiang, China",
+            "lat": 43.8244074,
+            "lon": 87.6139038,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": -128.9,
+        "chart_local": "1995-06-10T11:21",
+        "pillars": {
+          "year": "乙亥",
+          "month": "壬午",
+          "day": "壬申",
+          "hour": "丙午"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "noTrueSolarTime",
+          "description": "Without True Solar Time",
+          "pillars": {
+            "hour": "丁未"
+          }
+        },
+        {
+          "rule": "xinjiangTime",
+          "description": "If the clock time is Xinjiang time (UTC+6)",
+          "pillars": {
+            "hour": "丁未"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kashgar-day-boundary",
+      "title": "True Solar Time changes the day",
+      "checks": "In Kashgar a birth shortly after midnight on the clock falls on the previous solar day.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "2001-09-20",
+          "time": "01:30",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Kashgar, Xinjiang, China",
+            "lat": 39.4665981,
+            "lon": 75.9900135,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": -169.1,
+        "chart_local": "2001-09-19T22:40",
+        "pillars": {
+          "year": "辛巳",
+          "month": "丁酉",
+          "day": "乙酉",
+          "hour": "丁亥"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "noTrueSolarTime",
+          "description": "Without True Solar Time",
+          "pillars": {
+            "day": "丙戌",
+            "hour": "己丑"
+          }
+        },
+        {
+          "rule": "xinjiangTime",
+          "description": "If the clock time is Xinjiang time (UTC+6)",
+          "pillars": {
+            "day": "丙戌",
+            "hour": "戊子"
+          }
+        }
+      ]
+    },
+    {
+      "id": "china-dst-1988",
+      "title": "China's daylight saving (1986–1991)",
+      "checks": "Clocks ran one hour ahead in summer; the hour must be taken back to standard time first.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "1988-07-15",
+          "time": "07:30",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Beijing, China",
+            "lat": 40.190632,
+            "lon": 116.412144,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+09:00",
+        "dst": true,
+        "true_solar_correction_minutes": -20.2,
+        "chart_local": "1988-07-15T06:09",
+        "pillars": {
+          "year": "戊辰",
+          "month": "己未",
+          "day": "辛未",
+          "hour": "辛卯"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "noDst",
+          "description": "Without the daylight-saving correction",
+          "pillars": {
+            "hour": "壬辰"
+          }
+        }
+      ]
+    },
+    {
+      "id": "taiwan-dst-1979",
+      "title": "Taiwan's historical daylight saving",
+      "checks": "Taiwan used summer time in several years up to 1979; the time-zone history decides it, not the place alone.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "1979-07-15",
+          "time": "07:30",
+          "tz": "Asia/Taipei",
+          "place": {
+            "name": "Taipei, Taiwan",
+            "lat": 25.0375198,
+            "lon": 121.5636796,
+            "tz": "Asia/Taipei"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+09:00",
+        "dst": true,
+        "true_solar_correction_minutes": 0.5,
+        "chart_local": "1979-07-15T06:30",
+        "pillars": {
+          "year": "己未",
+          "month": "辛未",
+          "day": "癸未",
+          "hour": "乙卯"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "noDst",
+          "description": "Without the daylight-saving correction",
+          "pillars": {
+            "hour": "丙辰"
+          }
+        }
+      ]
+    },
+    {
+      "id": "late-zi-hour",
+      "title": "Late Zi hour (23:00–24:00)",
+      "checks": "FateSign keeps the day pillar on the calendar day and takes the hour stem from the next day.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "2010-04-15",
+          "time": "23:30",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Shanghai, China",
+            "lat": 31.2312707,
+            "lon": 121.4700152,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": 5.5,
+        "chart_local": "2010-04-15T23:35",
+        "pillars": {
+          "year": "庚寅",
+          "month": "庚辰",
+          "day": "乙未",
+          "hour": "戊子"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "ziStartsNextDay",
+          "description": "If the day changes at 23:00",
+          "pillars": {
+            "day": "丙申",
+            "hour": "戊子"
+          }
+        }
+      ]
+    },
+    {
+      "id": "before-lichun-2024",
+      "title": "Minutes before Li Chun",
+      "checks": "Li Chun 2024 began at 16:27 Beijing time, so 16:00 still belongs to the previous BaZi year and month.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "2024-02-04",
+          "time": "16:00",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Beijing, China",
+            "lat": 40.190632,
+            "lon": 116.412144,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": -28.7,
+        "chart_local": "2024-02-04T15:31",
+        "pillars": {
+          "year": "癸卯",
+          "month": "乙丑",
+          "day": "戊戌",
+          "hour": "庚申"
+        }
+      },
+      "different_rules": []
+    },
+    {
+      "id": "after-lichun-2024",
+      "title": "After Li Chun, before Lunar New Year",
+      "checks": "The year pillar changes at Li Chun, not at Lunar New Year (10 February 2024).",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "2024-02-04",
+          "time": "17:00",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Beijing, China",
+            "lat": 40.190632,
+            "lon": 116.412144,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": -28.7,
+        "chart_local": "2024-02-04T16:31",
+        "pillars": {
+          "year": "甲辰",
+          "month": "丙寅",
+          "day": "戊戌",
+          "hour": "庚申"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "lunarNewYear",
+          "description": "If the year changes at Lunar New Year",
+          "pillars": {
+            "year": "癸卯"
+          }
+        }
+      ]
+    },
+    {
+      "id": "new-york-dst",
+      "title": "New York in summer time",
+      "checks": "A birth abroad uses the local time zone and its daylight-saving history, never Beijing time.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "1990-07-04",
+          "time": "09:30",
+          "tz": "America/New_York",
+          "place": {
+            "name": "New York, United States",
+            "lat": 40.7127281,
+            "lon": -74.0060152,
+            "tz": "America/New_York"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "-04:00",
+        "dst": true,
+        "true_solar_correction_minutes": -0.3,
+        "chart_local": "1990-07-04T08:29",
+        "pillars": {
+          "year": "庚午",
+          "month": "壬午",
+          "day": "庚午",
+          "hour": "庚辰"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "noDst",
+          "description": "Without the daylight-saving correction",
+          "pillars": {
+            "hour": "辛巳"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sydney-southern-hemisphere",
+      "title": "Sydney, Southern Hemisphere",
+      "checks": "Summer time is removed and the solar-term order is kept; the month is not flipped by season.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "1995-01-15",
+          "time": "09:30",
+          "tz": "Australia/Sydney",
+          "place": {
+            "name": "Sydney, Australia",
+            "lat": -33.8698439,
+            "lon": 151.2082848,
+            "tz": "Australia/Sydney"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+11:00",
+        "dst": true,
+        "true_solar_correction_minutes": -4.2,
+        "chart_local": "1995-01-15T08:25",
+        "pillars": {
+          "year": "甲戌",
+          "month": "丁丑",
+          "day": "丙午",
+          "hour": "壬辰"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "noDst",
+          "description": "Without the daylight-saving correction",
+          "pillars": {
+            "hour": "癸巳"
+          }
+        },
+        {
+          "rule": "seasonFlip",
+          "description": "Schools that flip seasons in the Southern Hemisphere read the Chou month as a Wei month; FateSign does not."
+        }
+      ]
+    },
+    {
+      "id": "unknown-hour",
+      "title": "Hour unknown",
+      "checks": "Only three pillars can be calculated; True Solar Time does not apply.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "solar",
+          "date": "1990-05-15",
+          "time": null,
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Beijing, China",
+            "lat": 40.190632,
+            "lon": 116.412144,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "expected": {
+        "utc_offset": "+09:00",
+        "dst": true,
+        "true_solar_correction_minutes": null,
+        "chart_local": null,
+        "pillars": {
+          "year": "庚午",
+          "month": "辛巳",
+          "day": "庚辰",
+          "hour": null
+        }
+      },
+      "different_rules": []
+    },
+    {
+      "id": "lunar-leap-month",
+      "title": "Lunar leap month",
+      "checks": "A lunar date in the leap 2nd month of 2023 converts to 31 March, a month after the regular 2nd month.",
+      "request": {
+        "lang": "en",
+        "gender": "male",
+        "birth": {
+          "calendar": "lunar",
+          "date": {
+            "year": 2023,
+            "month": 2,
+            "day": 10,
+            "is_leap_month": true
+          },
+          "time": "10:00",
+          "tz": "Asia/Shanghai",
+          "place": {
+            "name": "Beijing, China",
+            "lat": 40.190632,
+            "lon": 116.412144,
+            "tz": "Asia/Shanghai"
+          }
+        },
+        "options": {
+          "true_solar_time": true,
+          "zi_hour_rule": "early_late"
+        }
+      },
+      "solar_date": "2023-03-31",
+      "expected": {
+        "utc_offset": "+08:00",
+        "dst": false,
+        "true_solar_correction_minutes": -18.9,
+        "chart_local": "2023-03-31T09:41",
+        "pillars": {
+          "year": "癸卯",
+          "month": "乙卯",
+          "day": "戊子",
+          "hour": "丁巳"
+        }
+      },
+      "different_rules": [
+        {
+          "rule": "notLeapMonth",
+          "description": "If read as the regular 2nd month (1 March 2023)",
+          "pillars": {
+            "year": "癸卯",
+            "month": "甲寅",
+            "day": "戊午",
+            "hour": "丁巳"
+          }
+        }
+      ]
+    }
+  ]
+}

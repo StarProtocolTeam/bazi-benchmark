@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use these test cases, please cite them as below."
+title: "BaZi Calculation Benchmark"
+abstract: "Twelve BaZi (Four Pillars of Destiny) test cases with full inputs and expected pillars, covering True Solar Time, historical daylight saving, the late Zi hour, the Li Chun boundary, the Southern Hemisphere, lunar leap months and unknown birth times."
+type: dataset
+version: 1.0.0
+date-released: 2026-10-24
+license: CC-BY-4.0
+url: "https://fatesign.com/en/methodology/benchmark/"
+repository-code: "https://github.com/StarProtocolTeam/bazi-benchmark"
+authors:
+  - name: "FateSign (Hyperflops G.K.)"
+    website: "https://fatesign.com/"
+keywords:
+  - bazi
+  - four pillars of destiny
+  - chinese astrology
+  - true solar time
+  - benchmark
