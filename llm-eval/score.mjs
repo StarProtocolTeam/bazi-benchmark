@@ -68,9 +68,13 @@ const scored = [];
 for (const record of latest.values()) {
   const testCase = casesById[record.case_id];
   const expected = { ...testCase.expected.pillars, hour: testCase.expected.pillars.hour ?? "" };
-  const row = { model: record.model, returned_model: record.returned_model ?? null, lang: record.lang, style: record.style, case_id: record.case_id, run: record.run };
+  const row = { provider: record.provider ?? "openai", model: record.model, returned_model: record.returned_model ?? null, lang: record.lang, style: record.style, case_id: record.case_id, run: record.run };
   if (record.error) {
     scored.push({ ...row, status: "error", error: record.error });
+    continue;
+  }
+  if (record.finish_reason === "refusal") {
+    scored.push({ ...row, status: "refusal" });
     continue;
   }
   const parsed = parsePillars(record.answer, Boolean(testCase.expected.pillars.hour));
@@ -120,6 +124,7 @@ for (const [key, rows] of groups) {
     cases: Object.keys(byCase).length,
     other_convention: conventions,
     unparsed: rows.filter((r) => r.status === "unparsed").length,
+    refusals: rows.filter((r) => r.status === "refusal").length,
     errors: rows.filter((r) => r.status === "error").length,
     median_tokens: tokens.length ? tokens.sort((a, b) => a - b)[Math.floor(tokens.length / 2)] : null,
     by_case: byCase,
@@ -131,15 +136,15 @@ fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify({ benchmark_vers
 // ---------- Markdown ----------
 const caseIds = benchmark.cases.map((c) => c.id).filter((id) => summary.some((s) => s.by_case[id]));
 const table = [
-  "| Model | Prompt | Lang | Charts fully correct | Pillars correct | Same result every run | Matched another convention | Unparsed / errors |",
+  "| Model | Prompt | Lang | Charts fully correct | Pillars correct | Same result every run | Matched another convention | Unparsed / refused / errors |",
   "| --- | --- | --- | --- | --- | --- | --- | --- |",
-  ...summary.map((s) => `| ${s.model} | ${s.style} | ${s.lang} | ${s.chart_accuracy ?? "—"}% | ${s.pillar_accuracy ?? "—"}% | ${s.consistent_cases}/${s.cases} | ${Object.entries(s.other_convention).map(([k, v]) => `${k} ×${v}`).join(", ") || "—"} | ${s.unparsed} / ${s.errors} |`),
+  ...summary.map((s) => `| ${s.model} | ${s.style} | ${s.lang} | ${s.chart_accuracy ?? "—"}% | ${s.pillar_accuracy ?? "—"}% | ${s.consistent_cases}/${s.cases} | ${Object.entries(s.other_convention).map(([k, v]) => `${k} ×${v}`).join(", ") || "—"} | ${s.unparsed} / ${s.refusals} / ${s.errors} |`),
 ];
 const caseTable = [
   `| Model | Prompt | Lang | ${caseIds.join(" | ")} |`,
   `| --- | --- | --- | ${caseIds.map(() => "---").join(" | ")} |`,
   ...summary.map((s) => `| ${s.model} | ${s.style} | ${s.lang} | ${caseIds.map((id) => (s.by_case[id] ? `${s.by_case[id].correct}/${s.by_case[id].total}` : "—")).join(" | ")} |`),
 ];
-const markdown = `# LLM results: ${name}\n\nBenchmark version ${benchmark.version}. A chart counts as correct only when all four pillars match (three when the birth time is unknown). "Matched another convention" means the answer equals the chart under a known alternative rule from cases.json, such as ignoring daylight saving or True Solar Time.\n\n${table.join("\n")}\n\n## Correct answers per case\n\n${caseTable.join("\n")}\n`;
+const markdown = `# LLM results: ${name}\n\nBenchmark version ${benchmark.version}. A chart counts as correct only when all four pillars match (three when the birth time is unknown). Refused answers count as wrong. "Matched another convention" means the answer equals the chart under a known alternative rule from cases.json, such as ignoring daylight saving or True Solar Time.\n\n${table.join("\n")}\n\n## Correct answers per case\n\n${caseTable.join("\n")}\n`;
 fs.writeFileSync(path.join(dir, "leaderboard.md"), markdown);
 console.log(markdown);

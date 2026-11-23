@@ -29,6 +29,15 @@ node llm-eval/run.mjs --models model-a,model-b --runs 3 --lang en,zh --style pla
 node llm-eval/score.mjs 2026-11-trial
 ```
 
+Claude models are called through Anthropic's own Messages API, not through a relay, so the prompt reaches the model unchanged:
+
+```bash
+# key from ANTHROPIC_API_KEY or ~/.config/bazi-benchmark/anthropic-api-key
+node llm-eval/run.mjs --provider anthropic --models claude-fable-5-2,claude-opus-5-5,claude-sonnet-5-5,claude-haiku-5-5 --runs 3 --lang en,zh --out 2026-11-trial
+```
+
+Thinking and effort stay at each model's default unless you pass `--effort`. A safety refusal is saved as a refusal and counts as a wrong answer; no fallback model is used.
+
 Preview the prompts without calling any API:
 
 ```bash
