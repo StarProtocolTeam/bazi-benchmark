@@ -95,7 +95,7 @@ try {
   const second = await run(args);
   assert.match(second, /24 requests to send \(72 already saved\)/);
 
-  const anthropicEnv = { ...process.env, ANTHROPIC_BASE_URL: `http://127.0.0.1:${port}/v1`, ANTHROPIC_API_KEY: "anthropic-test-key" };
+  const anthropicEnv = { ...process.env, BENCH_ANTHROPIC_BASE_URL: `http://127.0.0.1:${port}/v1`, ANTHROPIC_API_KEY: "anthropic-test-key" };
   await run(["--provider", "anthropic", "--models", "claude-good,claude-refuse", "--runs", "2", "--lang", "en", "--style", "plain", "--out", out], anthropicEnv);
   await assert.rejects(run(["--provider", "anthropic", "--models", "claude-good", "--temperature", "0", "--out", out], anthropicEnv), /temperature/);
 

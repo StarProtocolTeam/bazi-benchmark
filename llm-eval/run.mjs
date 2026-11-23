@@ -5,7 +5,8 @@
 //   --provider anthropic  Anthropic's Messages API, called directly (https://api.anthropic.com/v1)
 // No dependencies (plain fetch, so the benchmark stays dependency-free); Node 18 or later.
 //
-// Anthropic: key from ANTHROPIC_API_KEY or ~/.config/bazi-benchmark/anthropic-api-key; model ids such
+// Anthropic: key from ANTHROPIC_API_KEY or ~/.config/bazi-benchmark/anthropic-api-key (endpoint override:
+// BENCH_ANTHROPIC_BASE_URL, not ANTHROPIC_BASE_URL, which other tools set without /v1); model ids such
 // as claude-sonnet-5-5. Thinking and effort are left at each model's default (adaptive thinking is
 // always on for current models); --effort low|medium|high|xhigh|max overrides it. A safety refusal is
 // recorded as stop_reason "refusal" with no answer. No server-side fallback is requested, so every
@@ -87,7 +88,7 @@ const readKey = (envName, fileEnvName, fileName) => {
   const file = process.env[fileEnvName] ?? path.join(os.homedir(), ".config", "bazi-benchmark", fileName);
   return process.env[envName] || (fs.existsSync(file) ? fs.readFileSync(file, "utf8").trim() : "");
 };
-const baseUrl = (provider === "anthropic" ? process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com/v1" : process.env.LLM_BASE_URL)?.replace(/\/+$/, "");
+const baseUrl = (provider === "anthropic" ? process.env.BENCH_ANTHROPIC_BASE_URL ?? "https://api.anthropic.com/v1" : process.env.LLM_BASE_URL)?.replace(/\/+$/, "");
 const apiKey = provider === "anthropic"
   ? readKey("ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY_FILE", "anthropic-api-key")
   : readKey("LLM_API_KEY", "LLM_API_KEY_FILE", "llm-api-key");
