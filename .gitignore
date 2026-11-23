@@ -1,0 +1,4 @@
+llm-eval/results/selftest/
+node_modules/
+llm-eval/results/trial-*/
+llm-eval/results/2026-11-23-*/

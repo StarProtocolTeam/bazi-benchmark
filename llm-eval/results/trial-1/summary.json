@@ -1,0 +1,247 @@
+{
+  "benchmark_version": "1.0.0",
+  "results": [
+    {
+      "model": "deepseek-v4-pro",
+      "returned_models": [
+        "deepseek-v4-pro"
+      ],
+      "style": "spec",
+      "lang": "zh",
+      "answers": 4,
+      "chart_accuracy": 100,
+      "pillar_accuracy": 100,
+      "consistent_cases": 4,
+      "cases": 4,
+      "other_convention": {},
+      "unparsed": 0,
+      "errors": 0,
+      "median_tokens": 2583,
+      "by_case": {
+        "urumqi-true-solar-time": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "china-dst-1988": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "lunar-leap-month": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "baseline": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        }
+      }
+    },
+    {
+      "model": "gpt-6.2-sol",
+      "returned_models": [
+        "gpt-6.2-sol"
+      ],
+      "style": "spec",
+      "lang": "zh",
+      "answers": 4,
+      "chart_accuracy": 100,
+      "pillar_accuracy": 100,
+      "consistent_cases": 4,
+      "cases": 4,
+      "other_convention": {},
+      "unparsed": 0,
+      "errors": 0,
+      "median_tokens": 525,
+      "by_case": {
+        "baseline": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "urumqi-true-solar-time": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "lunar-leap-month": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "china-dst-1988": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        }
+      }
+    },
+    {
+      "model": "claude-sonnet-5.5",
+      "returned_models": [
+        "claude-sonnet-5.5"
+      ],
+      "style": "spec",
+      "lang": "zh",
+      "answers": 4,
+      "chart_accuracy": 75,
+      "pillar_accuracy": 81.3,
+      "consistent_cases": 4,
+      "cases": 4,
+      "other_convention": {},
+      "unparsed": 0,
+      "errors": 0,
+      "median_tokens": 1249,
+      "by_case": {
+        "baseline": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "urumqi-true-solar-time": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "china-dst-1988": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "lunar-leap-month": {
+          "correct": 0,
+          "total": 1,
+          "conventions": {}
+        }
+      }
+    },
+    {
+      "model": "claude-sonnet-5.5",
+      "returned_models": [
+        "claude-sonnet-5.5"
+      ],
+      "style": "plain",
+      "lang": "zh",
+      "answers": 4,
+      "chart_accuracy": 75,
+      "pillar_accuracy": 87.5,
+      "consistent_cases": 4,
+      "cases": 4,
+      "other_convention": {},
+      "unparsed": 0,
+      "errors": 0,
+      "median_tokens": 1104,
+      "by_case": {
+        "baseline": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "lunar-leap-month": {
+          "correct": 0,
+          "total": 1,
+          "conventions": {}
+        },
+        "china-dst-1988": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "urumqi-true-solar-time": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        }
+      }
+    },
+    {
+      "model": "gpt-6.2-sol",
+      "returned_models": [
+        "gpt-6.2-sol"
+      ],
+      "style": "plain",
+      "lang": "zh",
+      "answers": 4,
+      "chart_accuracy": 75,
+      "pillar_accuracy": 93.8,
+      "consistent_cases": 4,
+      "cases": 4,
+      "other_convention": {
+        "noTrueSolarTime": 1
+      },
+      "unparsed": 0,
+      "errors": 0,
+      "median_tokens": 508,
+      "by_case": {
+        "baseline": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "lunar-leap-month": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "urumqi-true-solar-time": {
+          "correct": 0,
+          "total": 1,
+          "conventions": {
+            "noTrueSolarTime": 1
+          }
+        },
+        "china-dst-1988": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        }
+      }
+    },
+    {
+      "model": "deepseek-v4-pro",
+      "returned_models": [
+        "deepseek-v4-pro"
+      ],
+      "style": "plain",
+      "lang": "zh",
+      "answers": 4,
+      "chart_accuracy": 50,
+      "pillar_accuracy": 81.3,
+      "consistent_cases": 4,
+      "cases": 4,
+      "other_convention": {
+        "noDst": 1
+      },
+      "unparsed": 0,
+      "errors": 0,
+      "median_tokens": 2980,
+      "by_case": {
+        "baseline": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        },
+        "lunar-leap-month": {
+          "correct": 0,
+          "total": 1,
+          "conventions": {}
+        },
+        "china-dst-1988": {
+          "correct": 0,
+          "total": 1,
+          "conventions": {
+            "noDst": 1
+          }
+        },
+        "urumqi-true-solar-time": {
+          "correct": 1,
+          "total": 1,
+          "conventions": {}
+        }
+      }
+    }
+  ]
+}
