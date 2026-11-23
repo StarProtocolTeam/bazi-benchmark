@@ -16,6 +16,28 @@ Twelve BaZi (Four Pillars of Destiny, 八字, 四柱推命, 사주) test cases w
 
 Use it to test a BaZi calculator, an AI assistant's answers or your own code. The cases are maintained by [FateSign](https://fatesign.com/en/methodology/benchmark/) and re-checked every day against its production calculator.
 
+## How do language models do?
+
+We asked 13 language models for the four pillars of every case, with no tools, in English and Chinese, three times each (2026-11-23). "Plain" is the question as a user would ask it; "with rules" also states the conventions listed under [Conventions](#conventions), so a wrong answer there is a calculation error.
+
+| Model | Charts fully correct, plain | Charts fully correct, with rules | Note |
+| --- | --- | --- | --- |
+| claude-fable-5-2 | 84.7% | 100% |  |
+| gpt-6.2-astra | 73.6% | 98.6% |  |
+| gpt-6.2-sol | 79.2% | 97.2% |  |
+| claude-opus-5-5 | 76.4% | 93.1% |  |
+| claude-sonnet-5-5 | 51.4% | 87.5% |  |
+| dola-seed-2.0-pro | 40.3% | 83.3% |  |
+| DeepSeek-V4.1-Flash | 33.3% | 70.8% | 63 of 144 answers hit the 8,000-token limit |
+| GPT-6 Luna | 41.7% | 69.4% |  |
+| deepseek-v4-pro | 38.9% | 66.7% | 30 of 144 answers hit the 8,000-token limit |
+| qwen4-max | 38.9% | 54.2% |  |
+| claude-haiku-5-5 | 19.4% | 50% |  |
+| minimax-m3 | 23.6% | 22.2% | 62 of 144 answers hit the 8,000-token limit |
+| glm-5.3 | 9.7% | 9.7% | 128 of 144 answers hit the 8,000-token limit |
+
+Claude models were called through Anthropic’s API with a 16,000-token limit, the others through an OpenAI-compatible relay with an 8,000-token limit. Prompts, every raw answer, the scoring code and these caveats are in [`llm-eval/`](llm-eval/) ([results and method notes](llm-eval/results/2026-11-23/)).
+
 ## Cases
 
 <!-- cases:start -->
