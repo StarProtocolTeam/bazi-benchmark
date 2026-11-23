@@ -33,6 +33,8 @@
 //   --timeout S         seconds per request (default 300)
 //   --dry-run           print the prompts and exit
 //   --list-models       print the model ids the API offers and exit
+//   --retry-truncated   also resend answers that stopped at the token limit (finish_reason "length"
+//                       or "max_tokens"); use with a higher --max-tokens. score.mjs keeps the newest.
 //
 // Results are appended to llm-eval/results/<NAME>/raw.jsonl. Rerunning the same command skips
 // answers that are already saved, so an interrupted run can be resumed.
@@ -71,6 +73,7 @@ const temperature = option("temperature") === undefined ? undefined : Number(opt
 if (temperature !== undefined && provider === "anthropic") throw new Error("--temperature is not accepted by the Anthropic API version used here");
 const timeoutMs = Number(option("timeout", 300)) * 1000;
 const dryRun = option("dry-run", false) === true;
+const retryTruncated = option("retry-truncated", false) === true;
 
 for (const lang of langs) if (!LANGS.includes(lang)) throw new Error(`--lang must be from ${LANGS.join(", ")}`);
 for (const style of styles) if (!STYLES.includes(style)) throw new Error(`--style must be from ${STYLES.join(", ")}`);
@@ -119,7 +122,8 @@ if (fs.existsSync(rawPath)) {
   for (const line of fs.readFileSync(rawPath, "utf8").split("\n")) {
     if (!line.trim()) continue;
     const record = JSON.parse(line);
-    if (!record.error) done.add(keyOf(record));
+    const truncated = record.finish_reason === "length" || record.finish_reason === "max_tokens";
+    if (!record.error && !(retryTruncated && truncated)) done.add(keyOf(record));
   }
 }
 

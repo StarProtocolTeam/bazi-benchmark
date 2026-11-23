@@ -79,7 +79,9 @@ for (const record of latest.values()) {
   }
   const parsed = parsePillars(record.answer, Boolean(testCase.expected.pillars.hour));
   if (!parsed) {
-    scored.push({ ...row, status: "unparsed", truncated: record.finish_reason === "length" });
+    // An answer cut off at the token limit before the PILLARS line is "truncated", not "unparsed".
+    const truncated = record.finish_reason === "length" || record.finish_reason === "max_tokens";
+    scored.push({ ...row, status: truncated ? "truncated" : "unparsed" });
     continue;
   }
   const pillarsRight = Object.fromEntries(KEYS.map((key) => [key, (parsed.pillars[key] ?? "") === (expected[key] ?? "")]));
@@ -119,6 +121,9 @@ for (const [key, rows] of groups) {
     lang,
     answers: rows.length,
     chart_accuracy: pct(rows.filter((r) => r.status === "correct").length, rows.length),
+    // Same, leaving out answers cut off at the token limit.
+    finished_accuracy: pct(rows.filter((r) => r.status === "correct").length, rows.filter((r) => r.status !== "truncated").length),
+    truncated: rows.filter((r) => r.status === "truncated").length,
     pillar_accuracy: pct(pillarChecks.filter(Boolean).length, pillarChecks.length),
     consistent_cases: Object.values(byCase).filter((c) => c.correct === c.total || c.correct === 0).length,
     cases: Object.keys(byCase).length,
@@ -131,20 +136,45 @@ for (const [key, rows] of groups) {
   });
 }
 summary.sort((a, b) => (b.chart_accuracy ?? -1) - (a.chart_accuracy ?? -1) || a.model.localeCompare(b.model));
-fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify({ benchmark_version: benchmark.version, results: summary }, null, 2) + "\n");
 
 // ---------- Markdown ----------
+// One row per model: plain and spec prompts, all languages and runs together.
+const byModel = new Map();
+for (const row of scored) {
+  if (!byModel.has(row.model)) byModel.set(row.model, { plain: [], spec: [] });
+  byModel.get(row.model)[row.style]?.push(row);
+}
+const share = (rows, filter = () => true) => {
+  const pool = rows.filter(filter);
+  return pool.length ? Math.round((1000 * pool.filter((r) => r.status === "correct").length) / pool.length) / 10 : null;
+};
+const overview = [...byModel].map(([model, g]) => ({
+  model,
+  plain: share(g.plain),
+  spec: share(g.spec),
+  spec_finished: share(g.spec, (r) => r.status !== "truncated"),
+  spec_finished_n: g.spec.filter((r) => r.status !== "truncated").length,
+  truncated: g.plain.concat(g.spec).filter((r) => r.status === "truncated").length,
+  answers: g.plain.length + g.spec.length,
+})).sort((a, b) => (b.spec ?? -1) - (a.spec ?? -1) || (b.plain ?? -1) - (a.plain ?? -1));
+const overviewTable = [
+  "| Model | Plain prompt | Prompt with rules | Rules, finished answers only (count) | Hit token limit |",
+  "| --- | --- | --- | --- | --- |",
+  ...overview.map((o) => `| ${o.model} | ${o.plain ?? "—"}% | ${o.spec ?? "—"}% | ${o.spec_finished ?? "—"}% (${o.spec_finished_n}) | ${o.truncated}/${o.answers} |`),
+];
+fs.writeFileSync(path.join(dir, "summary.json"), JSON.stringify({ benchmark_version: benchmark.version, overview, results: summary }, null, 2) + "\n");
+
 const caseIds = benchmark.cases.map((c) => c.id).filter((id) => summary.some((s) => s.by_case[id]));
 const table = [
-  "| Model | Prompt | Lang | Charts fully correct | Pillars correct | Same result every run | Matched another convention | Unparsed / refused / errors |",
-  "| --- | --- | --- | --- | --- | --- | --- | --- |",
-  ...summary.map((s) => `| ${s.model} | ${s.style} | ${s.lang} | ${s.chart_accuracy ?? "—"}% | ${s.pillar_accuracy ?? "—"}% | ${s.consistent_cases}/${s.cases} | ${Object.entries(s.other_convention).map(([k, v]) => `${k} ×${v}`).join(", ") || "—"} | ${s.unparsed} / ${s.refusals} / ${s.errors} |`),
+  "| Model | Prompt | Lang | Charts fully correct | Correct among finished answers | Pillars correct | Same result every run | Matched another convention | Hit token limit | Unparsed / refused / errors |",
+  "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+  ...summary.map((s) => `| ${s.model} | ${s.style} | ${s.lang} | ${s.chart_accuracy ?? "—"}% | ${s.finished_accuracy ?? "—"}% | ${s.pillar_accuracy ?? "—"}% | ${s.consistent_cases}/${s.cases} | ${Object.entries(s.other_convention).map(([k, v]) => `${k} ×${v}`).join(", ") || "—"} | ${s.truncated} | ${s.unparsed} / ${s.refusals} / ${s.errors} |`),
 ];
 const caseTable = [
   `| Model | Prompt | Lang | ${caseIds.join(" | ")} |`,
   `| --- | --- | --- | ${caseIds.map(() => "---").join(" | ")} |`,
   ...summary.map((s) => `| ${s.model} | ${s.style} | ${s.lang} | ${caseIds.map((id) => (s.by_case[id] ? `${s.by_case[id].correct}/${s.by_case[id].total}` : "—")).join(" | ")} |`),
 ];
-const markdown = `# LLM results: ${name}\n\nBenchmark version ${benchmark.version}. A chart counts as correct only when all four pillars match (three when the birth time is unknown). Refused answers count as wrong. "Matched another convention" means the answer equals the chart under a known alternative rule from cases.json, such as ignoring daylight saving or True Solar Time.\n\n${table.join("\n")}\n\n## Correct answers per case\n\n${caseTable.join("\n")}\n`;
+const markdown = `# LLM results: ${name}\n\nBenchmark version ${benchmark.version}. A chart counts as correct only when all four pillars match (three when the birth time is unknown). Refused answers count as wrong. "Matched another convention" means the answer equals the chart under a known alternative rule from cases.json, such as ignoring daylight saving or True Solar Time.\n\n## Overview\n\nShare of charts fully correct, English and Chinese prompts and all runs together.\n\n${overviewTable.join("\n")}\n\n## By language\n\n${table.join("\n")}\n\n## Correct answers per case\n\n${caseTable.join("\n")}\n`;
 fs.writeFileSync(path.join(dir, "leaderboard.md"), markdown);
 console.log(markdown);
