@@ -4,7 +4,9 @@
 // No dependencies; Node 18 or later.
 //
 //   export LLM_BASE_URL=https://api.example.com/v1   # endpoint that serves /chat/completions
-//   export LLM_API_KEY=...                           # read from the environment, never printed or saved
+//   export LLM_API_KEY=...                           # never printed or saved
+//   (or put the key in a file and set LLM_API_KEY_FILE; ~/.config/bazi-benchmark/llm-api-key is read
+//   when neither is set)
 //   node llm-eval/run.mjs --models gpt-x,claude-y --runs 3 --lang en,zh --style plain,spec
 //
 // Options:
@@ -20,10 +22,12 @@
 //   --temperature T     sent only when given; otherwise the model's default is used
 //   --timeout S         seconds per request (default 300)
 //   --dry-run           print the prompts and exit
+//   --list-models       print the model ids the API offers and exit
 //
 // Results are appended to llm-eval/results/<NAME>/raw.jsonl. Rerunning the same command skips
 // answers that are already saved, so an interrupted run can be resumed.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { LANGS, STYLES, buildPrompt } from "./prompts.mjs";
 
@@ -64,9 +68,18 @@ if (dryRun) {
 }
 
 const baseUrl = process.env.LLM_BASE_URL?.replace(/\/+$/, "");
-const apiKey = process.env.LLM_API_KEY;
+const keyFile = process.env.LLM_API_KEY_FILE ?? path.join(os.homedir(), ".config", "bazi-benchmark", "llm-api-key");
+const apiKey = process.env.LLM_API_KEY || (fs.existsSync(keyFile) ? fs.readFileSync(keyFile, "utf8").trim() : "");
+if (!baseUrl || !apiKey) throw new Error("Set LLM_BASE_URL (ending in /v1 or similar), and LLM_API_KEY or a key file (LLM_API_KEY_FILE).");
+
+if (option("list-models", false) === true) {
+  const response = await fetch(`${baseUrl}/models`, { headers: { Authorization: `Bearer ${apiKey}` } });
+  if (!response.ok) throw new Error(`GET /models failed: HTTP ${response.status}`);
+  const payload = await response.json();
+  for (const id of (payload.data ?? []).map((m) => m.id).sort()) console.log(id);
+  process.exit(0);
+}
 if (!models.length) throw new Error("Give --models, e.g. --models gpt-x,claude-y");
-if (!baseUrl || !apiKey) throw new Error("Set LLM_BASE_URL (ending in /v1 or similar) and LLM_API_KEY in the environment.");
 
 const outDir = path.join(here, "results", outName);
 fs.mkdirSync(outDir, { recursive: true });

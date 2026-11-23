@@ -20,7 +20,7 @@ Prompts are available in English, Chinese and Japanese.
 
 ## Run it
 
-Node 18 or later, no dependencies. The API key is read from the environment and is never printed or saved.
+Node 18 or later, no dependencies. The API key is read from `LLM_API_KEY`, or from a file (`LLM_API_KEY_FILE`, default `~/.config/bazi-benchmark/llm-api-key`). It is never printed or saved with the results. `--list-models` prints the model ids the API offers.
 
 ```bash
 export LLM_BASE_URL=https://api.example.com/v1
